@@ -21,7 +21,7 @@ body:
       options:
         - label: I searched the open and closed issues and did not find this one.
           required: true
-        - label: This is not a security problem. Those go privately to the address in docs/security.md.
+        - label: This is not a security problem. Those are reported privately, as SECURITY.md describes.
           required: true
         - label: I removed every key, token and password from what I paste below.
           required: true
