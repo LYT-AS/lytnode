@@ -1,0 +1,146 @@
+name: Bug report
+description: Something in the lytnode client or on a node did not work as described.
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. The details below let us
+        reproduce it without asking you again.
+
+        **Never paste a key or a token here.** That includes your `lyt_live_`
+        API key, a Tailscale auth key (`tskey-`), a Claude sign-in token and
+        any ssh private key. Issues are public. If your output contains one,
+        replace it with `<redacted>` before you submit.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched the open and closed issues and did not find this one.
+          required: true
+        - label: This is not a security problem. Those go privately to the address in docs/security.md.
+          required: true
+        - label: I removed every key, token and password from what I paste below.
+          required: true
+
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Where did it go wrong?
+      options:
+        - Running setup.sh or uninstall.sh
+        - Ordering a node
+        - Waiting for the node to be ready
+        - Connecting to the node over ssh
+        - Starting the agent on the node
+        - Sending a job or messages
+        - Bringing the work home
+        - Releasing the node
+        - Account, keys or billing
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you saw, in your own words.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What you or your agent did, in order. What you said to the agent is useful too.
+      placeholder: |
+        1. Asked the agent to rent a node for one hour
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Error message or output
+      description: Paste the exact text of the error, or the last lines your agent printed. It is formatted as code automatically, so no backticks are needed.
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Which agent were you using?
+      options:
+        - Claude Code
+        - Codex
+        - Cursor
+        - OpenCode
+        - Gemini CLI
+        - pi
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where does the agent run?
+      options:
+        - Terminal
+        - VS Code
+        - Cursor
+        - JetBrains
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Your operating system
+      options:
+        - macOS
+        - Linux
+        - Windows (WSL)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: agent-version
+    attributes:
+      label: Agent version
+      description: For example the output of `claude --version` or `codex --version`.
+    validations:
+      required: false
+
+  - type: input
+    id: node
+    attributes:
+      label: Node class and node ID
+      description: If a node was involved. The class is for example `linux_s`; the node ID is shown when you order and by `list_nodes`. Neither is secret.
+      placeholder: "linux_s, 7a2e6636-0d6a-4cb2-9a2d-76614b57f913"
+    validations:
+      required: false
+
+  - type: input
+    id: when
+    attributes:
+      label: When did it happen?
+      description: Date and time with your time zone. It lets us find the right lines in our logs.
+      placeholder: "2026-09-30 14:14 CEST"
+    validations:
+      required: false

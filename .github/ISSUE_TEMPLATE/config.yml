@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem privately
+    url: https://github.com/LYT-AS/lytnode/blob/main/docs/security.md#reporting-something
+    about: Do not open a public issue for a security problem. The page says where to write instead.
+  - name: Account, API keys and billing
+    url: https://node.lyt.no
+    about: Questions about your own account are best handled there, not in public.
+  - name: Troubleshooting guide
+    url: https://github.com/LYT-AS/lytnode/blob/main/docs/troubleshooting.md
+    about: The common problems and their fixes, before you open an issue.

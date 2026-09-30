@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest something lytnode could do, or do better.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tell us what you are trying to get done. The problem matters more to us
+        than a finished design, so start there.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched the open and closed issues and did not find this one.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The job or situation where lytnode falls short today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help?
+      description: How you imagine it working, if you have an idea.
+    validations:
+      required: false
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: What do you do today instead?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Which agent do you use?
+      multiple: true
+      options:
+        - Claude Code
+        - Codex
+        - Cursor
+        - OpenCode
+        - Gemini CLI
+        - pi
+        - Other
+    validations:
+      required: false
