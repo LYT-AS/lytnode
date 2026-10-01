@@ -284,6 +284,27 @@ it goes when the node is wiped.
 
 ---
 
+## `.local/bin/claude: No such file or directory` on a Linux node
+
+```
+bash: line 1: /home/agent/.local/bin/claude: No such file or directory
+EXIT=127
+```
+
+A script that starts the agent on the node has its path written in, and that
+path is the one a Mac node uses. A Linux node has `claude` in `/usr/bin`.
+
+| Node | Where `claude` is |
+|---|---|
+| Mac | `~/.local/bin/claude` |
+| Linux | `/usr/bin/claude` |
+
+Call it by its bare name instead — `claude -p …`, not `~/.local/bin/claude -p …`.
+Both places are on the PATH of `ssh <node> '<command>'`, so the bare name works
+on either. `ssh <node> 'command -v claude'` shows where it is.
+
+---
+
 ## Something else
 
 Two commands worth running before asking us:

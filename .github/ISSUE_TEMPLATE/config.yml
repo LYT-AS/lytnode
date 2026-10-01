@@ -4,7 +4,7 @@ contact_links:
     url: https://github.com/LYT-AS/lytnode/security/policy
     about: Do not open a public issue for a security problem. The page says where to write instead.
   - name: Account, API keys and billing
-    url: https://node.lyt.no
+    url: https://node.lyt.no/account
     about: Questions about your own account are best handled there, not in public.
   - name: Troubleshooting guide
     url: https://github.com/LYT-AS/lytnode/blob/main/docs/troubleshooting.md

@@ -14,8 +14,8 @@ Please include:
 
 - what you found, and what someone could do with it
 - the steps to reproduce it
-- which part it concerns: this client package, the service at
-  `node.lyt.no`, or a rented node
+- which part it concerns: this client package, the website, the service
+  at `nodes.lyt.no`, or a rented node
 - the date and time, with your time zone, if it involved a real order
 
 Never include a working key or token in the report. Describe it instead, for
@@ -29,7 +29,8 @@ it before you tell anyone else.
 
 - The files in this repository.
 - The client parts that `setup.sh` fetches with your API key.
-- The service at `node.lyt.no`, including its API.
+- The website at https://node.lyt.no/account and the service at
+  `nodes.lyt.no`, including its API.
 - The nodes it rents out, from ordering to release.
 
 ## Supported versions
