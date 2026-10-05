@@ -104,9 +104,11 @@ answers, it prints these same questions and stops with exit 5 (see step 6):
    and a participant list. Nothing of it is needed to rent a node.
 2. **Hooks** (only with 1; default: this project only, in a personal settings
    file kept out of git; or: every project).
-3. **A node may push messages here** (only with 1; default: as 1): at each
-   start the node's key is added to `~/.ssh/authorized_keys` on this machine,
-   so a message arrives at once. Without it, messages come home with the work.
+3. **A node may push messages here** (only with 1; default no, the person
+   chooses it): at each start the node's key is added to
+   `~/.ssh/authorized_keys` on this machine, so a message arrives at once.
+   Without it the node never connects here: this machine fetches its
+   messages every minute while a job runs, and at status and return.
 4. **The node guard here too** (only with 1; default no): this machine's
    Cursor and OpenCode would also refuse `git push` and similar.
 5. **API key**: for all projects (default), or for this project only, kept in
@@ -250,11 +252,10 @@ below lives next to it). In order, and say what you are doing:
    `Reason: [Real-World Transactions]`, ask the person to name the class and
    the hours, and do not change them yourself. How they can let orders run
    without a stop is in [troubleshooting.md](troubleshooting.md).
-2. **Save the certificate, before anything else touches ssh.** The order reply
-   carries `ssh_cert`. Store it once, with the certificate on stdin:
-   `~/.claude/skills/lyt-nodes/agentwork.sh cert <node_id> < cert.pub`.
-   Nothing does this for you: the reply goes to whoever made the call, and the
-   tool never sees it. Skip it and the first `ssh` fails with
+2. **Save the certificate, before anything else touches ssh.** Fetch it:
+   `~/.claude/skills/lyt-nodes/agentwork.sh cert <node_id>`. Never copy it out
+   of the order reply by hand: it is 1 kB of base64, and one wrong character
+   makes it worthless. Skip it and the first `ssh` fails with
    `Permission denied (publickey)` — an error that reads like a key problem
    rather than a missing step.
 

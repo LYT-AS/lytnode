@@ -17,7 +17,7 @@
 #
 #   1  message channel         --with-post | --without-post     default: no
 #   2  hooks for your agent    --hooks project | global          default: project
-#   3  node may push to you    --node-push yes | no              default: as 1
+#   3  node may push to you    --node-push yes | no              default: no (opt-in)
 #   4  node guard here too     --guard yes | no                  default: no
 #   5  API key for             --key-scope user | project        default: user
 #
@@ -198,16 +198,17 @@ fi
 PROJECT_DIR="$(cd "$PROJECT_DIR" 2>/dev/null && pwd -P)" || die 64 "--project: no such directory"
 HOME_REAL="$(cd "$HOME" && pwd -P)"
 
-# Defaults for what no flag set. The node may push to you when the message
-# channel is chosen, and not otherwise: pushing only ever delivers messages
-# (owner, 2026-09-25: "as today, with the message channel, but ask").
+# Defaults for what no flag set. A node may push to you only when you choose
+# it: push lets a node log in to this machine, so it is opt-in, and without
+# it this machine fetches the messages itself (owner, 2026-10-02: "an option,
+# so they must choose it of their own accord"; until then it followed 1).
 NODE_PUSH_SET=0
 [ -n "$NODE_PUSH" ] && NODE_PUSH_SET=1
 [ -n "$WITH_POST" ] || WITH_POST=no
 [ -n "$HOOKS" ] || HOOKS=project
 [ -n "$GUARD" ] || GUARD=no
 [ -n "$KEY_SCOPE" ] || KEY_SCOPE=user
-[ "$NODE_PUSH_SET" = 1 ] || NODE_PUSH="$WITH_POST"
+[ "$NODE_PUSH_SET" = 1 ] || NODE_PUSH=no
 
 # One-line description: prints the menu with the choices as they stand.
 show_menu() {
@@ -219,6 +220,7 @@ show_menu() {
         printf '       project: this project only, in a personal file kept out of git; global: every project\n'
         printf '  3  node may push to you .... %s\n' "$NODE_PUSH"
         printf '       yes: the node'"'"'s key goes into ~/.ssh/authorized_keys, so a message arrives at once\n'
+        printf '       no: the node never connects here; this machine fetches its messages every minute while a job runs\n'
         printf '  4  node guard here too ..... %s\n' "$GUARD"
         printf '       yes: this machine'"'"'s Cursor and OpenCode also refuse git push and similar\n'
     fi
@@ -234,8 +236,11 @@ if [ "$INTERACTIVE" = 1 ] && [ -t 0 ]; then
         case "$choice" in
             "") break ;;
             1)
+                # Push is never switched on by choosing the channel: it is
+                # opt-in, chosen with 3 (2026-10-02). Without the channel it
+                # cannot apply, so switching the channel off takes it off too.
                 if [ "$WITH_POST" = yes ]; then WITH_POST=no; else WITH_POST=yes; fi
-                [ "$NODE_PUSH_SET" = 1 ] || NODE_PUSH="$WITH_POST" ;;
+                [ "$WITH_POST" = yes ] || NODE_PUSH=no ;;
             2 | 3 | 4)
                 if [ "$WITH_POST" != yes ]; then
                     echo "  2 to 4 apply only with the message channel; choose 1 first"

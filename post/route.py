@@ -448,6 +448,18 @@ def process_one(orc: Path, known: set[str]) -> tuple[bool, list[str]]:
                 "Reply with new content, or have a human send one message in the thread."
             ]
 
+    # Nothing leaves the outbox before it has somewhere to go (owner's rule,
+    # 2026-10-02). A message whose every recipient is unknown on this machine
+    # used to be logged and moved to sent/ with a warning: gone from the outbox,
+    # delivered to nobody, and invisible to anything that looks for undelivered
+    # mail there. It stays now, and is routed once a recipient is registered.
+    recipients = [str(r) for r in list(env["to"]) + list(env.get("cc") or [])]
+    if not any(r in known for r in recipients):
+        return False, [
+            f"HELD {orc.name}: no recipient is known on this machine "
+            f"({', '.join(recipients)}) — left in the outbox until one is"
+        ]
+
     # Time control: override a missing/future-dated `created` with real UTC time
     # — agents guess round timestamps; the router stamps the truth.
     corrected = normalize_created(env)
