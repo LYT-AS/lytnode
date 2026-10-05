@@ -21,6 +21,10 @@
 # projects/<id>/tombstones/<msg_id>.tombstone marker. Tombstones sync both ways;
 # after every sync we sweep inbox on BOTH machines, removing any .orc/.md whose
 # msg_id has a tombstone. That kills the zombie everywhere, no --delete needed.
+# The tombstones travel FIRST, and this inbox is swept, before any inbox moves;
+# a pull never fetches an inbox copy of a message finished here. Otherwise the
+# other machine's unread copy came back and stood unread until the closing
+# sweep, and the doorbell rang for a message already read (2026-10-05).
 #
 # Transport: SSH + rsync to every machine in the NODES list below (their
 # HostNames are already Tailscale 100.x IPs). No new software.
@@ -167,16 +171,40 @@ push() {
 }
 
 pull() {
-    local rc=0
+    local rc=0 finished ts id pid
     echo "← pull ($1 → Mac): ${SAFE_DIRS[*]}"
+    # Never fetch an inbox copy of a message this machine has finished
+    # (2026-10-05). The other machine may still hold it unread; fetched, it stood
+    # unread here again until the closing sweep, and the doorbell rang for a
+    # message already read. Paths are relative to projects/, the transfer root.
+    finished="$(mktemp)"
+    for ts in "${LOCAL_POST}"/projects/*/tombstones/*.tombstone; do
+        [ -e "$ts" ] || continue
+        id="$(basename "$ts" .tombstone)"
+        pid="$(basename "$(dirname "$(dirname "$ts")")")"
+        printf '/%s/inbox/%s.orc\n/%s/inbox/%s.md\n' "$pid" "$id" "$pid" "$id" >> "$finished"
+    done
     for d in "${SAFE_DIRS[@]}"; do
         # stderr is dropped (a missing dir on a fresh node is normal and noisy),
         # but the exit code is NOT swallowed any more: a node that answers ssh
         # and then transfers nothing used to report a clean "✓ complete".
-        rsync ${DRY} "${RSYNC_OPTS[@]}" \
+        rsync ${DRY} "${RSYNC_OPTS[@]}" --exclude-from="$finished" \
             "$1:$2/${d}/" "${LOCAL_POST}/${d}/" 2>/dev/null || { echo "  ⚠️  pull $d ← $1 failed"; rc=1; }
     done
+    rm -f "$finished"
     return $rc
+}
+
+# Fetches only the other machine's tombstones, then sweeps this inbox, so what
+# was finished THERE is gone HERE before this machine pushes its inbox. Without
+# it, a push put this machine's unread copy back into an inbox where the message
+# was already read (a node pushing to a customer who had read it). Read-only
+# towards the other machine.
+pull_tombstones() {
+    # No -m: the rsync macOS ships may not know it, and an empty directory here is harmless.
+    rsync ${DRY} -az --include='*/' --include='*/tombstones/***' --exclude='*' \
+        "$1:$2/projects/" "${LOCAL_POST}/projects/" 2>/dev/null || return 1
+    sweep_local
 }
 
 # Remove every inbox .orc/.md whose msg_id has a tombstone, under $1 = projects root.
@@ -219,6 +247,10 @@ sync_node() {
         echo "⚠️  ${alias} unreachable — skipped (fail-open, syncs on next run)."
         return 1
     fi
+    # Finished-markers first, then the inboxes (2026-10-05). The old order -
+    # push, pull, sweep - fetched the other machine's unread copy of a message
+    # already read here, and it stood unread until the closing sweep.
+    pull_tombstones "${alias}" "${rpath}" || rc=2
     case "${MODE}" in
         push) push "${alias}" "${rpath}" || rc=2 ;;
         pull) pull "${alias}" "${rpath}" || rc=2 ;;
