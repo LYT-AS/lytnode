@@ -9,7 +9,9 @@ work back and never outlives its rental.
 When the hours run out, the node is held rather than destroyed, so work you
 have not fetched is not lost: it stays reachable for up to 48 hours, at twice
 the price for the first day and three times for the second, and you are
-reminded by mail. Release it yourself and it stops
+reminded by mail. The nodes your account has on hold may cost 200 EUR
+together, tax not included, or less if your own spending limit is lower; when
+that is reached they are released at once. Release it yourself and it stops
 billing at once. Order it with `exit_policy: discard` and it is released the
 moment the time is up, with no hold and no grace.
 
