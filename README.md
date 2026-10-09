@@ -100,14 +100,31 @@ setup.sh), section 4c.
 Describe a job without naming a class, and your agent suggests one: it sizes
 the job from your project, keeps to classes that can be ordered now, and tells
 you why its choice fits and what it costs. While the job runs, it checks
-whether the node still fits. When the node gets tight, it offers one size up,
-or two or four machines of the same size when the job has parts that can run
-apart, with the price.
+whether the node still fits. When the node gets tight, the job gets one size
+up before it runs out, on the machine that is ready soonest, in a place the
+job may stand. With a budget set, that happens without asking you; without
+one, your agent asks, with the price, and the job waits safely for your answer.
 
-It never orders on its own: every bigger machine is your yes. Nothing of the
-job runs on your own machine unless you allow it. Autoscale mode is on by
-default, you can switch it off, and every limit is a setting you can change:
-[docs/autoscale.md](docs/autoscale.md).
+Every bigger machine is your yes, given when asked or in advance as a budget.
+Nothing of the job runs on your own machine unless you allow it. Autoscale
+mode is on by default, you can switch it off, and every limit is a setting you
+can change: [docs/autoscale.md](docs/autoscale.md).
+
+### Jobs that are a list of tasks: use `TASKS.md`
+
+If you often run jobs that are many tasks of the same kind (films to render,
+test shards, datasets to process), write them in `TASKS.md` in the project,
+one task per line:
+
+```markdown
+- [ ] Render film 01
+- [ ] Render film 02
+```
+
+Then a slow job is not moved but helped: one more machine takes tasks from the
+end of the list while the first keeps going, and both results come home.
+Without a list, the only answer to a slow or full machine is a bigger one.
+More in [docs/autoscale.md](docs/autoscale.md#a-list-of-tasks).
 
 ## Two skills
 

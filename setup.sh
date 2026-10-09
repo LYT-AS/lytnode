@@ -20,8 +20,12 @@
 #   3  node may push to you    --node-push yes | no              default: no (opt-in)
 #   4  node guard here too     --guard yes | no                  default: no
 #   5  API key for             --key-scope user | project        default: user
+#   6  capacity watch          --watch yes | no                  default: yes (Claude Code)
 #
-# 2-4 only apply with the message channel. "project" hooks go in a personal
+# 6: when this machine is over its limits, your agent asks whether the job
+# should move to a rented node and recommends one. It measures this machine
+# when you write, in a hook in the project's personal settings, and sends
+# nothing anywhere. 2-4 only apply with the message channel. "project" hooks go in a personal
 # file in the project (Claude Code: .claude/settings.local.json), kept out of
 # git on this machine only; "global" means every project. --project <dir>
 # names the project (default: the directory this clone sits in).
@@ -75,6 +79,7 @@ HOOKS=""
 NODE_PUSH=""
 GUARD=""
 KEY_SCOPE=""
+WATCH=""
 
 CONF_DIR="$HOME/.config/lytnode"
 KEY_FILE="${LYT_NODES_KEY_FILE:-$CONF_DIR/api-key}"
@@ -143,6 +148,9 @@ while [ $# -gt 0 ]; do
         --key-scope)
             case "${2:-}" in user | project) KEY_SCOPE="$2" ;; *) die 64 "--key-scope must be user or project" ;; esac
             shift 2 ;;
+        --watch)
+            case "${2:-}" in yes | no) WATCH="$2" ;; *) die 64 "--watch must be yes or no" ;; esac
+            shift 2 ;;
         -h|--help) usage; exit 0 ;;
         *) die 64 "unknown option $1 (see --help)" ;;
     esac
@@ -209,6 +217,10 @@ NODE_PUSH_SET=0
 [ -n "$GUARD" ] || GUARD=no
 [ -n "$KEY_SCOPE" ] || KEY_SCOPE=user
 [ "$NODE_PUSH_SET" = 1 ] || NODE_PUSH=no
+# On unless chosen off (owner, 2026-09-18: everyone should have it). Claude
+# Code only for now: the other agents have no such hook yet.
+[ -n "$WATCH" ] || WATCH=yes
+[ "$AGENT" = claude ] || WATCH=no
 
 # One-line description: prints the menu with the choices as they stand.
 show_menu() {
@@ -226,12 +238,16 @@ show_menu() {
     fi
     printf '  5  API key for ............. %s\n' "$KEY_SCOPE"
     printf '       user: all your projects; project: this project only, kept in .lytnode/ and out of git\n'
+    if [ "$AGENT" = claude ]; then
+        printf '  6  capacity watch .......... %s\n' "$WATCH"
+        printf '       yes: when this machine is over its limits, your agent asks whether to move the job to a node\n'
+    fi
 }
 
 if [ "$INTERACTIVE" = 1 ] && [ -t 0 ]; then
     while true; do
         show_menu
-        printf '  Change (1-5), or Enter to continue: '
+        printf '  Change (1-6), or Enter to continue: '
         read -r choice || choice=""
         case "$choice" in
             "") break ;;
@@ -252,7 +268,13 @@ if [ "$INTERACTIVE" = 1 ] && [ -t 0 ]; then
                     4) if [ "$GUARD" = yes ]; then GUARD=no; else GUARD=yes; fi ;;
                 esac ;;
             5) if [ "$KEY_SCOPE" = user ]; then KEY_SCOPE=project; else KEY_SCOPE=user; fi ;;
-            *) echo "  type a number from 1 to 5, or press Enter" ;;
+            6)
+                if [ "$AGENT" != claude ]; then
+                    echo "  6 applies to Claude Code only"
+                    continue
+                fi
+                if [ "$WATCH" = yes ]; then WATCH=no; else WATCH=yes; fi ;;
+            *) echo "  type a number from 1 to 6, or press Enter" ;;
         esac
     done
 elif [ "$INTERACTIVE" = 1 ]; then
@@ -280,6 +302,7 @@ elif [ "$INTERACTIVE" = 1 ]; then
     printf '    3  --node-push yes | no           (with 1 only)\n'
     printf '    4  --guard yes | no               (with 1 only)\n'
     printf '    5  --key-scope user | project\n'
+    [ "$AGENT" != claude ] || printf '    6  --watch yes | no\n'
     printf '  A choice you do not pass keeps the default shown above.\n'
     exit 5
 fi
@@ -296,6 +319,10 @@ if [ "$PROJECT_DIR" = "$HOME_REAL" ]; then
     if [ "$KEY_SCOPE" = project ]; then
         echo "  note: no project here either for a project key; the key is kept for all projects"
         KEY_SCOPE=user
+    fi
+    if [ "$WATCH" = yes ]; then
+        echo "  note: no project here for the capacity watch either; it is left out (run again with --project <dir>)"
+        WATCH=no
     fi
 fi
 
@@ -346,8 +373,9 @@ fi
  printf '%s' "$HOOKS" > "$CONF_DIR/hooks"
  printf '%s' "$NODE_PUSH" > "$CONF_DIR/node-push"
  printf '%s' "$GUARD" > "$CONF_DIR/guard"
- printf '%s' "$KEY_SCOPE" > "$CONF_DIR/key-scope")
-echo "  chosen: message channel $WITH_POST, hooks $HOOKS, node push $NODE_PUSH, guard $GUARD, key for $KEY_SCOPE"
+ printf '%s' "$KEY_SCOPE" > "$CONF_DIR/key-scope"
+ printf '%s' "$WATCH" > "$CONF_DIR/watch")
+echo "  chosen: message channel $WITH_POST, hooks $HOOKS, node push $NODE_PUSH, guard $GUARD, key for $KEY_SCOPE, capacity watch $WATCH"
 
 # ── 2. The two ssh key pairs ─────────────────────────────────────────────────
 # Two SEPARATE pairs are required. Sending the same key for both is rejected.
@@ -489,6 +517,12 @@ if [ "$WITH_POST" = yes ] && [ "$CLIENT_KNOWS_MENU" = 0 ]; then
      printf '%s' "$NODE_PUSH" > "$CONF_DIR/node-push"
      printf '%s' "$GUARD" > "$CONF_DIR/guard")
 fi
+# The capacity watch, the same way: a client from before it cannot wire it up.
+if [ "$WATCH" = yes ] && ! grep -q -- '--watch yes|no' "$HERE/install.sh"; then
+    echo "  note: this version of the client has no capacity watch; run setup.sh again when the service is updated"
+    WATCH=no
+    (umask 077; printf '%s' "$WATCH" > "$CONF_DIR/watch")
+fi
 if [ "$WITH_POST" = yes ]; then
     echo "  yes: the message channel will be installed"
 else
@@ -549,6 +583,11 @@ else
     echo "  note: this version of the client always installs the message channel;"
     echo "  your answer applies from the next version (run setup.sh again then)"
 fi
+# The capacity watch, to a client that knows it (checked above, so the client
+# also knows --project, which both branches above pass).
+if [ "$WATCH" = yes ]; then
+    POST_ARGS+=(--watch yes)
+fi
 set +e
 LYT_NODES_URL="$URL" LYT_NODES_API_KEY="$(tr -d '\n' < "$KEY_FILE")" \
     bash "$HERE/install.sh" --agent "$AGENT" --no-models "${POST_ARGS[@]+"${POST_ARGS[@]}"}"
@@ -580,8 +619,12 @@ if [ -n "$PROJECT_KEY_DIR" ]; then
 fi
 # Only when our hooks are in it: a post skill that is not ours gets no hooks,
 # and a path we did not write must not hide a file the person makes later.
+# The capacity watch (2026-10-08) goes there with or without the channel.
 if [ "$AGENT" = claude ] && [ "$WITH_POST" = yes ] && [ "$HOOKS" = project ] \
         && grep -q "inbox-peek.py" "$PROJECT_DIR/.claude/settings.local.json" 2>/dev/null; then
+    EXCLUDE_PATHS+=("$PROJECT_DIR/.claude/settings.local.json")
+elif [ "$AGENT" = claude ] \
+        && grep -q "lyt-nodes/hooks/readiness-watch.sh" "$PROJECT_DIR/.claude/settings.local.json" 2>/dev/null; then
     EXCLUDE_PATHS+=("$PROJECT_DIR/.claude/settings.local.json")
 fi
 # Files the installers put in the project are in the project record.

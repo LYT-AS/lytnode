@@ -207,6 +207,37 @@ project_records() {
                     REMOVED=$((REMOVED + 1))
                 fi
                 ;;
+            hooks:watch-hook)
+                # The capacity watch (2026-10-08): our ONE UserPromptSubmit
+                # entry in the project's personal settings, and nothing else.
+                # The file goes only when install.sh made it (watch-hook-file)
+                # and nothing at all is left in it.
+                local watch="$path/.claude/settings.local.json" left
+                if [ -f "$watch" ] && grep -q "lyt-nodes/hooks/readiness-watch.sh" "$watch" 2>/dev/null; then
+                    if [ "$DRY_RUN" = 1 ]; then
+                        echo "  would remove the capacity watch from $watch"
+                    elif ! command -v jq >/dev/null 2>&1; then
+                        echo "  jq is missing: remove the readiness-watch.sh entry from $watch yourself"
+                    elif left=$(jq '
+                            if .hooks.UserPromptSubmit then
+                              .hooks.UserPromptSubmit |= (map(.hooks |= map(select((.command // "") | endswith("/lyt-nodes/hooks/readiness-watch.sh") | not)))
+                                                          | map(select((.hooks | length) > 0)))
+                              | if (.hooks.UserPromptSubmit | length) == 0 then del(.hooks.UserPromptSubmit) else . end
+                              | if (.hooks | length) == 0 then del(.hooks) else . end
+                            else . end' "$watch"); then
+                        if [ "$(printf '%s' "$left" | jq -c .)" = "{}" ] \
+                                && grep -qxF "watch-hook-file $path" "$PROJECT_RECORD" 2>/dev/null; then
+                            gone "$watch"
+                        else
+                            printf '%s\n' "$left" > "$watch"
+                            echo "  removed the capacity watch from $watch"
+                            REMOVED=$((REMOVED + 1))
+                        fi
+                    else
+                        echo "  could not read $watch as JSON; remove the readiness-watch.sh entry yourself"
+                    fi
+                fi
+                ;;
             rest:project)
                 # The project itself: a place the person works, never removed.
                 # Only our marked block in its local git ignore file goes, and
@@ -331,13 +362,44 @@ if [ -f "$HOME/.ssh/config" ] && grep -qxF "Include $SSH_CONF" "$HOME/.ssh/confi
         echo "  would remove the line 'Include $SSH_CONF' from ~/.ssh/config"
     else
         # grep -v exits 1 when nothing is left, which is a valid outcome here.
-        # The comment line setup.sh writes above the Include goes with it.
-        grep -vxF "Include $SSH_CONF" "$HOME/.ssh/config" \
-            | grep -vxF "# lytnode: rented nodes. Keep this first - ssh keeps the first value it sees." \
-            > "$HOME/.ssh/config.lytnode-tmp" || true
-        cat "$HOME/.ssh/config.lytnode-tmp" > "$HOME/.ssh/config"
+        # The comment above the Include goes with it, in BOTH forms: setup.sh
+        # writes one line, agentwork.sh writes two (found 2026-10-07 — the
+        # two-line form was left behind). Exact lines only; nothing else moves.
+        # The config is replaced only when the new one was written: a failed
+        # write (a full disk) must never leave the person with an empty file.
+        if { grep -vxF "Include $SSH_CONF" "$HOME/.ssh/config" \
+                | grep -vxF "# lytnode: rented nodes. Keep this first - ssh keeps the first value it sees." \
+                | grep -vxF "# lytnode: rented nodes. Keep this first — ssh keeps the first" \
+                | grep -vxF "# value it finds for each option, so a later Host * would win." \
+                || true; } > "$HOME/.ssh/config.lytnode-tmp"; then
+            cat "$HOME/.ssh/config.lytnode-tmp" > "$HOME/.ssh/config"
+            echo "  removed the line 'Include $SSH_CONF' from ~/.ssh/config"
+        else
+            echo "  WARNING: could not write a new ~/.ssh/config — left as it was; remove the line 'Include $SSH_CONF' yourself" >&2
+        fi
         rm -f "$HOME/.ssh/config.lytnode-tmp"
-        echo "  removed the line 'Include $SSH_CONF' from ~/.ssh/config"
+    fi
+    REMOVED=$((REMOVED + 1))
+fi
+# The keys nodes used to push post here (2026-10-07). Only the lines this
+# package marked as its own — `expiry-time="…" <key> lytnode:<node id>` — and
+# never any other line of the file. Written through, so a symlinked file stays
+# a symlink and keeps its mode.
+AUTH_KEYS="$HOME/.ssh/authorized_keys"
+OURS='substr($NF, 1, 8) == "lytnode:" && substr($1, 1, 13) == "expiry-time=\""'
+if [ -f "$AUTH_KEYS" ] && awk "$OURS { found = 1 } END { exit !found }" "$AUTH_KEYS"; then
+    if [ "$DRY_RUN" = 1 ]; then
+        echo "  would remove the node keys this package added to ~/.ssh/authorized_keys"
+    else
+        # Replaced only when the new file was written in full: an empty
+        # authorized_keys would shut the person out of their own machine.
+        if awk "!($OURS)" "$AUTH_KEYS" > "$HOME/.ssh/authorized_keys.lytnode-tmp"; then
+            cat "$HOME/.ssh/authorized_keys.lytnode-tmp" > "$AUTH_KEYS"
+            echo "  removed the node keys this package added to ~/.ssh/authorized_keys"
+        else
+            echo "  WARNING: could not write a new ~/.ssh/authorized_keys — left as it was; remove the lines ending in lytnode:<node id> yourself" >&2
+        fi
+        rm -f "$HOME/.ssh/authorized_keys.lytnode-tmp"
     fi
     REMOVED=$((REMOVED + 1))
 fi

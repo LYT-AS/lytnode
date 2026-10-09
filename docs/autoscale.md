@@ -1,9 +1,10 @@
 # Autoscale mode
 
 Autoscale mode sizes the job before you order, checks the node while the job
-runs, and offers a bigger machine before the job runs out of room. It is part
-of the `lyt-nodes` skill and is on by default. It never orders anything on its
-own: every bigger machine, and every extra one, is your yes.
+runs, and gives the job a bigger machine before it runs out of room, or one
+more machine when a list of tasks goes slowly. It is part of the `lyt-nodes`
+skill and is on by default. Every bigger machine, and every extra one, is your
+yes, given when your agent asks or in advance as a budget.
 
 ## Before the order
 
@@ -49,11 +50,72 @@ your machine first, to measure how much memory it takes.
 
 ## While the job runs
 
-Your agent checks the node when the job fails or stalls, when the agent on the
-node stops because the machine is too small, and about every half hour while
-it follows a long job. You can also ask it at any time: "does the node fit the
-job?" The check is `~/.claude/skills/lyt-nodes/agentwork.sh fit <node_id>`,
-and it ends with one verdict:
+A job you hand over with `~/.claude/skills/lyt-nodes/agentwork.sh run` is
+watched for you: every status
+message carries the node's fit, and the first time the node is tight or too
+small you get a message of its own, at once. Nothing is ordered without your
+yes.
+
+## Before the job runs out
+
+On a Linux node, a job you hand over with `run` is stopped before it runs out
+of memory or disk, and its work is saved. Your agent then moves it to a bigger
+machine where the job may stand (see "Where a job may go" below), where it
+continues from the saved work, and releases the old one. It does so on its own
+when the new machine costs no more than the budget you have set in the console (Billing, "Budget for automatic work", per job), and the order
+is charged to your card like any other; otherwise it recommends one machine
+with its price and waits for your answer. There is no deadline: the job stays
+stopped until you answer, at the latest until the node's rental ends, and you
+are reminded meanwhile. If you say no, the job goes on where it was, and if it
+heads for the limit again it is stopped again and you are told. A Mac is never
+moved this way.
+
+When the budget covers it, your agent orders the bigger machine as soon as the
+node is tight, before the job has to be stopped, and the job finishes its step
+and saves its work while the new machine starts.
+
+Among the machines that fit, your agent chooses the one that is ready
+soonest, and then the cheapest.
+
+## Where a job may go
+
+| `move-to` | A job may be moved, or get help, in |
+|---|---|
+| `standard` (default) | its own jurisdiction; Norway and the EU also count as one for this |
+| `origin` | its own jurisdiction only |
+| `country` | its own country only |
+| `none` | nowhere: the job is never moved, and you are only told |
+
+Set it for all your projects with
+`~/.claude/skills/lyt-nodes/agentwork.sh autoscale move-to country`, or for one
+project, from its directory, with `... move-to country --project`. A project
+can only make it stricter than what you set for all of them. Somewhere else
+than this allows: only your yes moves a job there.
+
+## A list of tasks
+
+If a job is a list of tasks that do not depend on each other, such as films to
+render, test shards or datasets, put them in `TASKS.md` in the project, one
+per line:
+
+```markdown
+- [ ] Render film 01
+- [ ] Render film 02
+- [ ] Render film 03
+```
+
+The agent on the node works through the list from the top and checks each task
+off (`- [x]`) when it is done. When the list goes slowly, or the results fill
+the disk, autoscale gives the job one more machine that takes tasks from the
+end of the list, while the first one keeps going. Nothing stops, and both
+results come home as branches. Without a list, the answer is a bigger machine.
+
+In a session your agent drives, it checks the node when the job fails or
+stalls, when the agent on the node stops because the machine is too small, and
+about every half hour while it follows a long job. You can also ask it at any
+time: "does the node fit the job?" The check is
+`~/.claude/skills/lyt-nodes/agentwork.sh fit <node_id>`, and it ends with one
+verdict:
 
 | Verdict | What it means | What your agent does |
 |---|---|---|
@@ -115,9 +177,16 @@ it for you.
 | `io-wait-pct` | `20` | `busy` when the CPU waits for the disk this share of the time (Linux) |
 | `gpu-memory-pct` | `90` | `tight` when this share of the GPU memory is in use |
 | `gpu-busy-pct` | `95` | `busy` when the GPU is this busy |
+| `hard-memory-pct` | `95` | A job handed over with `run` is stopped and its work saved when memory and swap together are this full (Linux) |
+| `hard-pressure-full-pct` | `5` | ... or when the machine spends this share of the time waiting for memory (Linux) |
+| `death-horizon-min` | `15` | ... or when memory or disk will be full within this many minutes at the current pace (Linux) |
+| `pause-max-min` | `0` | `0`: a stopped job waits for your answer, at the latest until the node's rental ends. Above `0`: it goes on where it was after this many minutes |
+| `help-after-min` | `60` | A job with a `TASKS.md` list tells you when more than this many minutes of tasks are left at its pace |
+| `move-to` | `standard` | Where a job may be moved or get help (see "Where a job may go") |
 
-A share is a whole number from 1 to 99. `disk-free-mb` and `load-per-core`
-take any whole number from 1 up.
+A share is a whole number from 1 to 99. `disk-free-mb`, `load-per-core`,
+`death-horizon-min` and `help-after-min` take any whole number from 1 up, and
+`pause-max-min` any whole number from 0 up.
 
 Swap in use is not a warning on its own; waiting for memory is. On a Mac,
 memory is `tight` when macOS itself reports critical memory pressure.

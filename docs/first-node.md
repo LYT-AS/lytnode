@@ -115,10 +115,14 @@ answers, it prints these same questions and stops with exit 5 (see step 6):
    `.lytnode/api-key` here, out of git. For this project only, ASK which key
    it should use: one made for it at https://node.lyt.no/account/keys, or the
    one from step 4. Setup never picks it for them.
+6. **Capacity watch** (Claude Code; default yes): when this machine is over
+   its limits, you ask once whether the job should move to a rented node, and
+   recommend one. It measures this machine and sends nothing anywhere.
 
 Their answers become flags in step 6: `--with-post` or `--without-post`,
 `--hooks project` or `--hooks global`, `--node-push yes` or `--node-push no`,
-`--guard yes` or `--guard no`, and `--key-scope user` or `--key-scope project`.
+`--guard yes` or `--guard no`, `--key-scope user` or `--key-scope project`,
+and `--watch yes` or `--watch no`.
 Setup never changes the project's own files (`.gitignore`,
 `.claude/settings.json`, `CLAUDE.md`, `AGENTS.md`); what it writes there is kept
 out of git in `.git/info/exclude`, and it tells you so.

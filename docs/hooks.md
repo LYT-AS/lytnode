@@ -1,10 +1,11 @@
 # The hooks, one by one
 
 A hook is a small script your agent runs by itself at a fixed moment: when a
-session starts, after it writes a file, when a turn ends. Nothing on this page
-is part of the base install. `setup.sh` installs these hooks only when you
-choose the optional message channel (`--with-post`, or yes to its question),
-and `bash uninstall.sh` takes them out again.
+session starts, after it writes a file, when a turn ends. `setup.sh` installs
+the hooks below only when you choose the optional message channel
+(`--with-post`, or yes to its question). One more, the capacity watch, is its
+own menu choice for Claude Code ([readiness-watch.sh](#readiness-watchsh-claude-code)).
+`bash uninstall.sh` takes them all out again.
 
 The message channel lets a node tell your session here when a job is done or
 blocked. Renting and using a node works without it.
@@ -168,6 +169,31 @@ bash ~/.claude/skills/post/install-hooks.sh --project <your project> --local --r
   ```
 
   `2` means refused.
+
+## readiness-watch.sh (Claude Code)
+
+- **Purpose:** notices when this machine is no longer a good place to work,
+  and has your agent ask once whether the job should move to a rented node,
+  with one class it recommends. Nothing is ordered without your yes.
+- **Event and agent:** when you send a message (`UserPromptSubmit`), in Claude
+  Code. That is the moment you are there to answer, and what it prints
+  reaches your agent then.
+- **What it starts or writes:** it runs `readiness.sh` beside it, which reads
+  disk, memory and load here, and keeps one line of state in
+  `~/.claude/agentwork/readiness.state`. It sends nothing anywhere.
+- **What it never does:** speak at every message. It speaks once an hour at
+  most, or sooner when the machine gets worse; and it offers no node when
+  autoscale mode is off. A nearly full disk is always said, rented node or not.
+- **On your own machine:** setup's menu choice 6 (`--watch yes`, the
+  default), in the project's `.claude/settings.local.json`, kept out of git.
+- **How to switch it off:** `bash uninstall.sh`, or, to keep the rest,
+  remove its entry under `UserPromptSubmit` in that file. Setup with
+  `--watch no` leaves it out of a new installation.
+- **How to see it working:**
+
+  ```bash
+  ~/.claude/skills/lyt-nodes/readiness.sh
+  ```
 
 ## config.hooks.toml.template (Codex)
 
