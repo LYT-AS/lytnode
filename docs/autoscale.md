@@ -72,7 +72,8 @@ moved this way.
 
 When the budget covers it, your agent orders the bigger machine as soon as the
 node is tight, before the job has to be stopped, and the job finishes its step
-and saves its work while the new machine starts.
+and saves its work while the new machine starts. Your agent never orders past
+this budget on its own; above it, it asks you.
 
 Among the machines that fit, your agent chooses the one that is ready
 soonest, and then the cheapest.
@@ -187,6 +188,12 @@ it for you.
 A share is a whole number from 1 to 99. `disk-free-mb`, `load-per-core`,
 `death-horizon-min` and `help-after-min` take any whole number from 1 up, and
 `pause-max-min` any whole number from 0 up.
+
+The first of the three stop limits that is reached pauses the job, and the
+pause message names it. Which one comes first depends on the node. A node with
+swap, which new Linux nodes have, waits for memory well before memory and swap
+are full, so the waiting limit is reached first. The pace limit decides when
+memory fills without that wait, and it is the only one that watches the disk.
 
 Swap in use is not a warning on its own; waiting for memory is. On a Mac,
 memory is `tight` when macOS itself reports critical memory pressure.

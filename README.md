@@ -152,6 +152,29 @@ What a skill is, which agents read them, and where each is installed:
 | `post/` | the message channel between your machine and your nodes |
 | `docs/` | setup, agents, autoscale, security, troubleshooting |
 
+## Terms of the service
+
+Renting a machine is governed by the terms on the website, not by the licences below.
+
+- Terms of Service: <https://node.lyt.no/terms>
+- Privacy: <https://node.lyt.no/privacy>
+- Cookies: <https://node.lyt.no/cookies>
+
+**Mac machines** also fall under Apple's licence. A rented Mac is for software
+development only (building from source and automated testing), for at least 24
+hours, and you may not start your own virtual macOS machines on it. The terms
+page has the section "Mac machines and Apple's licence". Apple's own text:
+<https://www.apple.com/legal/sla/> (macOS and Xcode agreements) and, for
+leasing, Section 3 of the [macOS Tahoe agreement](https://www.apple.com/legal/sla/docs/macOSTahoe.pdf).
+
+**Disk on a Mac node.** Example: Mac M4, 16 GB, 256 GB SSD. 150 GB of it is your node's
+disk; the rest is the Mac's own system. Of your 150 GB, 25-32 GB is macOS and the tools
+(Node.js, git, tmux, Tailscale, the Xcode command line tools), so over 100 GB is free when
+the node starts (measured 11 October 2026: 139 GiB in total, about 107 GiB free). Xcode,
+simulators and models you install come on top; the iOS 26.5 simulator alone is about
+8.5 GB. This is the same overhead a developer's own Mac carries before the first project
+is opened. Other Mac classes, and later Macs with bigger disks, show other figures.
+
 ## License
 
 Two licences, because two different things are in here.

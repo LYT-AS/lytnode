@@ -240,7 +240,10 @@ below lives next to it). In order, and say what you are doing:
    use those. If not, recommend one class with its price, the way autoscale
    mode sizes a job ([autoscale.md](autoscale.md)); for a first try with no
    job in mind, that is the smallest Linux class for one hour. Never start from
-   a Mac by default: a Mac is billed for at least a day. `list_offers` shows
+   a Mac by default: a Mac is billed for at least a day, and its disk is smaller than the
+   hardware figure suggests (the Mac M4 16 GB node has a 256 GB SSD, of which 150 GB
+   is the node's disk, with over 100 GB free at start; the README has the details).
+   `list_offers` shows
    the classes this account can order. ASK also for a Tailscale auth key: a
    new one for every order, since each key
    admits one node. It comes from
