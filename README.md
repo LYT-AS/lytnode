@@ -91,7 +91,8 @@ again.
 A node can come with developer tools and local language models already in
 place: name them on the order (`toolchain`, `models`), and the machine is
 prepared before you get it. Models are pulled on Mac classes today. Of the
-tools, `ollama` and `eas` run on every class; the others need a Mac. For a model you accept its licence in the order,
+tools, `ollama`, `eas` and `postgres` (PostgreSQL 17 with `psql`, running on the node with an empty database) run
+on every class, and the others need a Mac. For a model you accept its licence in the order,
 because you are the licensee, not us - and on the node, `lyt-models` shows
 each licence and pulls only after your yes. The whole story, including why we
 never serve a model ourselves, is in `lyt-node-core/README.md` (fetched by

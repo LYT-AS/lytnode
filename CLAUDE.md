@@ -15,7 +15,7 @@ each step changes on this machine before you run it.
    over the person's own Tailscale network.
 3. **A Tailscale auth key** (`tskey-auth-...`) for each order, a new one
    every time, from <https://login.tailscale.com/admin/settings/keys>, with
-   exactly: `reusable=false`, `preauthorized=true`, `ephemeral=false`.
+   exactly: `reusable=false`, `preauthorized=true`, `ephemeral=false`, expiry 1 day.
 4. **Which agent** should work on the node. By default, the one you are:
    claude, codex, cursor, opencode, gemini or pi.
 

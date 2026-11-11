@@ -250,7 +250,8 @@ below lives next to it). In order, and say what you are doing:
    https://login.tailscale.com/admin/settings/keys and needs exactly these
    settings: `reusable=false`, `preauthorized=true`, `ephemeral=false`. The
    last one matters most: an ephemeral node drops off their network at its
-   first reboot, and nobody can get it back. Then call `provision_node` with
+   first reboot, and nobody can get it back. Also set the key's expiry to
+   1 day: it is used once, when the node starts. Then call `provision_node` with
    the class and hours, `tailscale_authkey`, `agent` set to the agent you are,
    `ssh_public_key` from `~/.ssh/id_ed25519.pub` and `ssh_cert_public_key`
    from `~/.ssh/lytnode_cert.pub`. Renting costs money, so your own safety
@@ -348,6 +349,42 @@ below lives next to it). In order, and say what you are doing:
    prints is work that would be lost: run
    `~/.claude/skills/lyt-nodes/agentwork.sh return <node_id>` and check again.
    Releasing early stops the meter; releasing unfetched work loses it.
+
+### Jobs with nobody attached: `run`, `update` and `prune`
+
+`run` starts a job from a brief file, with no session to watch:
+`~/.claude/skills/lyt-nodes/agentwork.sh run <node_id> --job JOB.md [--name <job>]`.
+`run` does not send the project, so send it first with `seed`.
+
+**Which job folder `run` uses.** `--name` decides when it is given. Without it,
+`run` uses the job `seed` filled, but only when you run it from the same
+directory you seeded from. From any other directory it uses that directory's
+name, as before.
+
+| What you did | The job `run` uses |
+|---|---|
+| `seed --job sprint-one`, then `run` from the same directory | `sprint-one` |
+| `seed --job sprint-one` in one project, then `run` from another project | the other project's folder name |
+| `run --name sprint-two` | `sprint-two`, always |
+
+This means a job you seeded under its own name does not start in an empty
+folder, and a new project never starts in an old project's job.
+
+**New commits between runs:**
+`~/.claude/skills/lyt-nodes/agentwork.sh update <node_id> [--job <job>]`.
+It sends your branch with git and moves the job forward to it, then shows the
+commit the job now stands at. It refuses, and changes nothing, while the job
+runs, when the node has uncommitted work, and when the node has commits of its
+own that are not home yet. Do not copy files into a job by hand: a copy can
+land in the wrong folder, and the next test then runs old code.
+
+**Disk:** every job builds from scratch in its own folder.
+`~/.claude/skills/lyt-nodes/agentwork.sh prune <node_id> [--job <job>]` lists
+the build folders (`target/`, `node_modules/`) and their size. With `--yes` it
+frees them, but only when `check-home` says everything is home and nothing of
+the job is running. Source files and history are never touched. ASK the person
+before `--yes`. For Rust, `--shared-build-cache` on `start` or `run` lets every
+job of the same project share one build folder on the node.
 
 ## 10. Report
 

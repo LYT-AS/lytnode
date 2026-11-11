@@ -15,7 +15,8 @@ you never open a terminal.
   Tailscale network, and that is how you reach it
 - for each order, a new Tailscale auth key from
   <https://login.tailscale.com/admin/settings/keys> with exactly
-  `reusable=false`, `preauthorized=true` and `ephemeral=false`
+  `reusable=false`, `preauthorized=true` and `ephemeral=false`, and an
+  expiry of 1 day: the key is used once, when the node starts
 
 ## 1. Run setup
 
