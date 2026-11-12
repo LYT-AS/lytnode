@@ -3,6 +3,20 @@
 What changed for you in each release of lytnode, newest first. Changes made
 before the first entry here are in the repository's history.
 
+## 2026-11-12
+
+### New
+
+- **`--effort <level>`** on `run` (`low`, `medium`, `high`, `xhigh` or `max`,
+  or `AGENTWORK_EFFORT`) sets how hard the agent on the node thinks. It is
+  optional: without it the job starts exactly as before and the model keeps
+  its own default, which differs per model. A level that does not exist is
+  refused before anything reaches the node.
+- **`Model used:`** in the job's status, its messages home and `run --status`
+  names the model the agent really ran. `--model opus` is a name for the
+  newest Opus; this line shows which one that was. Nothing changes in how
+  `--model` is passed.
+
 ## 2026-11-11
 
 ### New
