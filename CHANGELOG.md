@@ -3,6 +3,33 @@
 What changed for you in each release of lytnode, newest first. Changes made
 before the first entry here are in the repository's history.
 
+## 2026-11-17
+
+### New
+
+- **Windows Server nodes.** A clean Windows Server 2025 machine in your own
+  Tailscale network, in four sizes: S (2 vCPU, 8 GB), M (4, 16 GB), L (8,
+  32 GB) and XL (16, 64 GB). The classes are `win_s` to `win_xl` in the EU and
+  `<country>_win_*` elsewhere, today in the UK, Japan, India, South Korea,
+  Hong Kong and the United Arab Emirates. `list_offers` shows the current list.
+- **A Windows node works differently from the others.** Nothing of ours runs
+  on it: no agent, no message channel, no agentwork session. The answer to the
+  order carries the administrator password once; save it, because we keep no
+  copy. Connect with Remote Desktop or ssh (user `Administrator`, PowerShell),
+  over your Tailscale network only. `toolchain` and `models` are refused on a
+  Windows class. The whole story: [docs/windows.md](docs/windows.md).
+- **Dedicated Linux in the UK:** `uk_cpu_s` to `uk_cpu_xl`.
+- **A Windows filter** in the catalogue on <https://node.lyt.no/pricing>.
+
+### Changed
+
+- **"Sold out" comes with alternatives**, at most ten: the same kind of
+  machine first, then the same country, then the nearest price.
+- **`~/.claude/skills/lyt-nodes/agentwork.sh start` and `status <node>` refuse a Windows node** and say
+  how to reach it. `status` without a node lists it as `WINDOWS`.
+- **Microsoft's licence terms** for Windows machines are in the Terms of
+  Service: <https://node.lyt.no/terms>.
+
 ## 2026-11-16
 
 ### New

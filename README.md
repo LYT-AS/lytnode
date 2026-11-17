@@ -98,6 +98,14 @@ each licence and pulls only after your yes. The whole story, including why we
 never serve a model ourselves, is in `lyt-node-core/README.md` (fetched by
 setup.sh), section 4c.
 
+**Windows Server nodes** (`win_s` to `win_xl` in the EU, `<country>_win_*` in other
+countries; `list_offers` shows which) are clean Windows Server machines
+in your own tailnet, with nothing of ours on them. You get the administrator
+password once, in the answer to the order, and connect over Remote Desktop or
+ssh through your tailnet. Your agent installs what it needs itself. agentwork
+sessions run on Linux and Mac nodes only. How a Windows node differs, step by
+step: [docs/windows.md](docs/windows.md).
+
 ## Autoscale: the right machine for the job
 
 Describe a job without naming a class, and your agent suggests one: it sizes
@@ -151,7 +159,7 @@ What a skill is, which agents read them, and where each is installed:
 | `lyt-node-core/` | the skill, `connect.sh`, `agentwork.sh` (start, stop, status, cert), the guarded return (fetched by setup.sh) |
 | `adapters/` | per-agent configuration templates and `verify.sh` (fetched by setup.sh) |
 | `post/` | the message channel between your machine and your nodes |
-| `docs/` | setup, agents, autoscale, security, troubleshooting |
+| `docs/` | setup, agents, autoscale, Windows, security, troubleshooting |
 
 ## Terms of the service
 
