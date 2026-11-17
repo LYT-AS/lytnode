@@ -17,7 +17,7 @@ moment the time is up, with no hold and no grace.
 
 ## Before you start
 
-- **An account.** Accounts are by invitation today:
+- **An account.** Anyone can register:
   <https://node.lyt.no/register>.
 - **An API key** (`lyt_live_...`), created in your account at
   <https://node.lyt.no/account/keys>. It is stored in

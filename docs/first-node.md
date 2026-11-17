@@ -68,7 +68,8 @@ It names everything it removes and never touches ssh keys.
 ## 4. The API key
 
 The key starts with `lyt_live_`. The person creates it in their account at
-https://node.lyt.no/account/keys (accounts are by invitation today). It is
+https://node.lyt.no/account/keys (anyone can register at
+https://node.lyt.no/register). It is
 kept in `~/.config/lytnode/api-key`, mode 600, outside every project. Look, in
 this order:
 
@@ -353,8 +354,10 @@ below lives next to it). In order, and say what you are doing:
 ### Jobs with nobody attached: `run`, `update` and `prune`
 
 `run` starts a job from a brief file, with no session to watch:
-`~/.claude/skills/lyt-nodes/agentwork.sh run <node_id> --job JOB.md [--name <job>]`.
-`run` does not send the project, so send it first with `seed`.
+`~/.claude/skills/lyt-nodes/agentwork.sh run <node_id> --seed --job JOB.md [--name <job>]`.
+`--seed` sends the project in this directory first. `run` refuses a job folder
+with nothing in it, unless you add `--empty` for a job that builds everything
+from nothing.
 
 **Which job folder `run` uses.** `--name` decides when it is given. Without it,
 `run` uses the job `seed` filled, but only when you run it from the same

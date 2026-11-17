@@ -10,7 +10,7 @@ each step changes on this machine before you run it.
 ## What to ask the person for
 
 1. **An API key** (`lyt_live_...`), created in their account at
-   <https://node.lyt.no/account/keys>. Accounts are by invitation today.
+   <https://node.lyt.no/account/keys>. Anyone can register.
 2. **Tailscale on this machine**, installed and signed in. A node is reached
    over the person's own Tailscale network.
 3. **A Tailscale auth key** (`tskey-auth-...`) for each order, a new one
